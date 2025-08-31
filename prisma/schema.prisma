@@ -14,24 +14,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole{
-    ADMIN
-    USER
-    PREMIUM_USER
+enum UserRole {
+  ADMIN
+  USER
+  PREMIUM_USER
 }
 
 model User {
-  id            String          @id @default(cuid()) @map("_id") 
-  name          String?
-  email         String?         @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  role          UserRole        @default(USER)
-   
+  id               String       @id @default(cuid()) @map("_id")
+  name             String?
+  email            String?      @unique
+  emailVerified    DateTime?
+  image            String?
+  myplayground     Playground[]
+  staredPlayground StarMark[]
+
+  accounts Account[]
+  role     UserRole  @default(USER)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 model Account {
   id                String  @id @default(cuid()) @map("_id")
   userId            String  @map("user_id")
@@ -50,4 +54,42 @@ model Account {
 
   @@unique([provider, providerAccountId])
   @@index([userId])
+}
+
+enum Templates {
+  REACTJS
+  NEXTJS
+  EXPRESS
+  VUE
+  HONO
+  ANGULAR
+}
+
+model Playground {
+  id          String    @id @default(cuid()) @map("_id")
+  title       String
+  description String?
+  template    Templates @default(REACTJS)
+
+  Starmark StarMark[]
+  userId   String
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // ÷todo add temple
+
+  craetedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StarMark {
+  id           String   @id @default(cuid()) @map("_id")
+  userId       String
+  playgroundId String
+  isMarked     Boolean
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  playground Playground @relation(fields: [playgroundId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, playgroundId])
 }
