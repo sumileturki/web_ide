@@ -2,6 +2,8 @@
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import TemplateFileTree from "@/features/playground/components/template-file-tree";
+import { useFileExplorer } from "@/features/playground/hooks/useFileExplorer";
 import { usePlayground } from "@/features/playground/hooks/usePlayground";
 import { useParams } from "next/navigation";
 import React from "react";
@@ -11,11 +13,34 @@ const Page = () => {
   const {playgroundData, templateData, isLoading, error, saveTemplateData } = usePlayground(id);
   console.log(templateData);
   console.log("play", playgroundData);
+  const {
+    activeFileId,
+    closeAllFiles,
+    openFile,
+    closeFile,
+    editorContent,
+    updateFileContent,
+    handleAddFile,
+    handleAddFolder,
+    handleDeleteFile,
+    handleDeleteFolder,
+    handleRenameFile,
+    handleRenameFolder,
+    openFiles,
+    setTemplateData,
+    setActiveFileId,
+    setPlaygroundId,
+    setOpenFiles,
+  } = useFileExplorer();
+
+  
   
   
   return (
-    <TooltipProvider>
+    <>
       {/* templete tree */}
+      <TemplateFileTree
+      data={templateData!}/>
 
       <SidebarInset>
         <header className=" flex h-16 shrink-0 items-center gap-2 boredr-b px-4">
@@ -29,7 +54,7 @@ const Page = () => {
           </div>
         </header>
       </SidebarInset>
-    </TooltipProvider>
+    </>
   );
 };
 
