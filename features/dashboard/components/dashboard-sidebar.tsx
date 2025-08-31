@@ -36,6 +36,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import Image from "next/image"
+import UserButton from "@/features/auth/components/user-button"
 
 // Define the interface for a single playground item, icon is now a string
 interface PlaygroundData {
@@ -175,7 +176,7 @@ export function DashboardSidebar({ initialPlaygroundData }: { initialPlaygroundD
             <SidebarMenuButton asChild tooltip="Settings">
               <Link href="/settings">
                 <Settings className="h-4 w-4" />
-                <span>Settings</span>
+                <span>Account <UserButton/></span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
