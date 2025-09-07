@@ -12,8 +12,11 @@ interface UseWebContainerReturn {
   error: string | null;
   instance: WebContainer | null;
   writeFileSync: (path: string, content: string) => Promise<void>;
-  destroy: () => void; // Added destroy function
+  destroy: () => void;
 }
+
+// ✅ Global singleton (only one instance allowed)
+let globalWebContainer: WebContainer | null = null;
 
 export const useWebContainer = ({ templateData }: UseWebContainerProps): UseWebContainerReturn => {
   const [serverUrl, setServerUrl] = useState<string | null>(null);
@@ -26,11 +29,14 @@ export const useWebContainer = ({ templateData }: UseWebContainerProps): UseWebC
 
     async function initializeWebContainer() {
       try {
-        const webcontainerInstance = await WebContainer.boot();
-        
+        if (!globalWebContainer) {
+          // boot only once
+          globalWebContainer = await WebContainer.boot();
+        }
+
         if (!mounted) return;
-        
-        setInstance(webcontainerInstance);
+
+        setInstance(globalWebContainer);
         setIsLoading(false);
       } catch (err) {
         console.error('Failed to initialize WebContainer:', err);
@@ -45,27 +51,22 @@ export const useWebContainer = ({ templateData }: UseWebContainerProps): UseWebC
 
     return () => {
       mounted = false;
-      if (instance) {
-        instance.teardown();
-      }
+      // ❌ don’t teardown automatically, only when destroy() is called
+      // otherwise new mounts will fail to boot again
     };
   }, []);
 
   const writeFileSync = useCallback(async (path: string, content: string): Promise<void> => {
-    if (!instance) {
-      throw new Error('WebContainer instance is not available');
-    }
+    if (!instance) throw new Error('WebContainer instance is not available');
 
     try {
-      // Ensure the folder structure exists
       const pathParts = path.split('/');
-      const folderPath = pathParts.slice(0, -1).join('/'); // Extract folder path
+      const folderPath = pathParts.slice(0, -1).join('/');
 
       if (folderPath) {
-        await instance.fs.mkdir(folderPath, { recursive: true }); // Create folder structure recursively
+        await instance.fs.mkdir(folderPath, { recursive: true });
       }
 
-      // Write the file
       await instance.fs.writeFile(path, content);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to write file';
@@ -74,14 +75,14 @@ export const useWebContainer = ({ templateData }: UseWebContainerProps): UseWebC
     }
   }, [instance]);
 
-  // Added destroy function
   const destroy = useCallback(() => {
-    if (instance) {
-      instance.teardown();
+    if (globalWebContainer) {
+      globalWebContainer.teardown();
+      globalWebContainer = null;
       setInstance(null);
       setServerUrl(null);
     }
-  }, [instance]);
+  }, []);
 
   return { serverUrl, isLoading, error, instance, writeFileSync, destroy };
 };

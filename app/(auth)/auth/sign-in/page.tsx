@@ -4,8 +4,8 @@ import React from 'react'
 
 const SignInPage = () => {
   return (
-    <div className='space-y-6 flex flex-col items-center justify-center'>
-        <Image src={"/logo.svg"} alt='logo ' height={300} width={300}/>
+    <div className='space-y-6 flex  items-center justify-between gap-32 '>
+        <Image src={"/undraw_login_weas.svg"} alt='logo ' height={400} width={400}/>
         <SignInFormClient/>
     </div>
   )

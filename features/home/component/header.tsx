@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import UserButton from "@/features/auth/components/user-button";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { ThemeToggle, ThemeToggleButton } from "@/components/ui/theme-toggle";
 
 export function Header() {
   return (
@@ -43,7 +43,7 @@ export function Header() {
                     />
 
                     <span className="hidden sm:block font-extrabold text-lg">
-                      Web Editor
+                      CodeX
                     </span>
                   </Link>
                   <span className="text-zinc-300 dark:text-zinc-700">|</span>
@@ -78,7 +78,7 @@ export function Header() {
                 <div className="hidden sm:flex items-center gap-3">
                   <span className="text-zinc-300 dark:text-zinc-700">|</span>
                   {/* <HeaderPro /> */}
-                  <ThemeToggle />
+                  <ThemeToggleButton  variant="circle-blur" start="top-right" />
                   <UserButton />
                 </div>
 
@@ -96,8 +96,10 @@ export function Header() {
                   >
                     API
                   </Link>
-                  <ThemeToggle />
-                  <UserButton />
+                  <ThemeToggleButton />
+                  <div className="cursor-pointer  ">
+                  <UserButton  />
+                  </div>
                 </div>
               </div>
             </div>

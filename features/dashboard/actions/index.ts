@@ -4,13 +4,13 @@ import { currentUser } from "@/features/auth/actions";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
+// Existing functions
 export const createPlayground = async (data: {
   title: string;
   template: "REACT" | "NEXTJS" | "EXPRESS" | "VUE" | "HONO" | "ANGULAR";
   description?: string;
 }) => {
   const { template, title, description } = data;
-
   const user = await currentUser();
   if (!user?.id) throw new Error("User not found");
 
@@ -43,7 +43,7 @@ export const getAllPlaygroundForUser = async () => {
       include: {
         user: true,
         Starmark: {
-          where: { userId: user.id }, // only works if Starmark is a relation
+          where: { userId: user.id },
           select: { isMarked: true },
         },
       },
@@ -108,4 +108,47 @@ export const duplicateProjectById = async (id: string) => {
     console.error("Error duplicating project:", error);
     return null;
   }
+};
+
+// ----------------------------
+// New Starred/StarMark functions
+// ----------------------------
+
+// Toggle starred status for a playground
+export const toggleStarPlayground = async (playgroundId: string) => {
+  const user = await currentUser();
+  if (!user?.id) throw new Error("User not found");
+
+  const existingStar = await db.starMark.findUnique({
+    where: {
+      userId_playgroundId: { userId: user.id, playgroundId },
+    },
+  });
+
+  if (existingStar) {
+    // Unmark
+    await db.starMark.delete({
+      where: { userId_playgroundId: { userId: user.id, playgroundId } },
+    });
+    return { starred: false };
+  } else {
+    // Mark
+    await db.starMark.create({
+      data: { userId: user.id, playgroundId, isMarked: true },
+    });
+    return { starred: true };
+  }
+};
+
+// Get all starred playgrounds for current user
+export const getStarredPlaygroundsForUser = async () => {
+  const user = await currentUser();
+  if (!user?.id) throw new Error("User not found");
+
+  const starredPlaygrounds = await db.starMark.findMany({
+    where: { userId: user.id, isMarked: true },
+    include: { playground: true },
+  });
+
+  return starredPlaygrounds.map((s) => s.playground);
 };

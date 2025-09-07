@@ -53,9 +53,9 @@ const AddButton = () => {
           </Button>
 
           <div className="flex flex-col">
-            <h1 className="text-xl font-bold text-[#e93f3f]"> AddNew</h1>
+            <h1 className="text-xl font-bold text-[#e93f3f]"> Add New</h1>
             <p className="text-sm text-muted-foreground max-w-[220px]">
-              Craete anew Playground
+              Create a new Playground
             </p>
           </div>
 

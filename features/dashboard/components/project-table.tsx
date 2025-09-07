@@ -42,7 +42,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   MoreHorizontal,
   Edit3,
@@ -51,8 +51,11 @@ import {
   Copy,
   Download,
   Eye,
+  Star,
+  StarOff,
 } from "lucide-react";
 import { toast } from "sonner";
+import { toggleStarPlayground } from "../actions";
 
 interface ProjectTableProps {
   projects: Project[];
@@ -80,7 +83,18 @@ export default function ProjectTable({
     description: "",
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [favoutrie, setFavourite] = useState(false);
+
+  // Track starred state per project
+  const [starredState, setStarredState] = useState<Record<string, boolean>>({});
+
+  // Initialize starred state from project.Starmark
+  useEffect(() => {
+    const initialState: Record<string, boolean> = {};
+    projects.forEach((project) => {
+      initialState[project.id] = project.Starmark?.[0]?.isMarked ?? false;
+    });
+    setStarredState(initialState);
+  }, [projects]);
 
   const handleEditClick = async (project: Project) => {
     setSelectedProject(project);
@@ -90,9 +104,9 @@ export default function ProjectTable({
     });
     setEditDialogOpen(true);
   };
+
   const handleDeleteClick = async (project: Project) => {
     setSelectedProject(project);
-
     setDeleteDialogOpen(true);
   };
 
@@ -113,9 +127,7 @@ export default function ProjectTable({
     }
   };
 
-  const handleMarkasFavorite = async () => {};
-
- const handleDeleteProject = async () => {
+  const handleDeleteProject = async () => {
     if (!selectedProject || !onDeleteProject) return;
 
     setIsLoading(true);
@@ -147,12 +159,25 @@ export default function ProjectTable({
     }
   };
 
-    const copyProjectUrl = (projectId: string) => {
+  const copyProjectUrl = (projectId: string) => {
     const url = `${window.location.origin}/playground/${projectId}`;
     navigator.clipboard.writeText(url);
     toast.success("Project URL copied to clipboard");
   };
-  
+
+  const handleToggleStar = async (projectId: string) => {
+    try {
+      const res = await toggleStarPlayground(projectId);
+      setStarredState((prev) => ({
+        ...prev,
+        [projectId]: res.starred,
+      }));
+      toast.success(res.starred ? "Added to Starred!" : "Removed from Starred!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update starred status");
+    }
+  };
 
   return (
     <>
@@ -210,7 +235,6 @@ export default function ProjectTable({
                     <span className="text-sm">{project.user.name}</span>
                   </div>
                 </TableCell>
-
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -220,12 +244,17 @@ export default function ProjectTable({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem asChild>
-                        {/* <MarkedToggleButton
-                          markedForRevision={project.Starmark[0]?.isMarked}
-                          id={project.id}
-                        /> */}
+                      {/* Star/Unstar */}
+                      <DropdownMenuItem onClick={() => handleToggleStar(project.id)}>
+                        {starredState[project.id] ? (
+                          <Star className="h-4 w-4 mr-2 text-yellow-400" />
+                        ) : (
+                          <StarOff className="h-4 w-4 mr-2" />
+                        )}
+                        {starredState[project.id] ? "Unstar Project" : "Star Project"}
                       </DropdownMenuItem>
+
+                      {/* Open Project */}
                       <DropdownMenuItem asChild>
                         <Link
                           href={`/playground/${project.id}`}
@@ -235,6 +264,7 @@ export default function ProjectTable({
                           Open Project
                         </Link>
                       </DropdownMenuItem>
+
                       <DropdownMenuItem asChild>
                         <Link
                           href={`/playground/${project.id}`}
@@ -245,26 +275,26 @@ export default function ProjectTable({
                           Open in New Tab
                         </Link>
                       </DropdownMenuItem>
+
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => handleEditClick(project)}
-                      >
+
+                      <DropdownMenuItem onClick={() => handleEditClick(project)}>
                         <Edit3 className="h-4 w-4 mr-2" />
                         Edit Project
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleDuplicateProject(project)}
-                      >
+
+                      <DropdownMenuItem onClick={() => handleDuplicateProject(project)}>
                         <Copy className="h-4 w-4 mr-2" />
                         Duplicate
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => copyProjectUrl(project.id)}
-                      >
+
+                      <DropdownMenuItem onClick={() => copyProjectUrl(project.id)}>
                         <Download className="h-4 w-4 mr-2" />
                         Copy URL
                       </DropdownMenuItem>
+
                       <DropdownMenuSeparator />
+
                       <DropdownMenuItem
                         onClick={() => handleDeleteClick(project)}
                         className="text-destructive focus:text-destructive"
@@ -280,6 +310,8 @@ export default function ProjectTable({
           </TableBody>
         </Table>
       </div>
+
+      {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -307,16 +339,12 @@ export default function ProjectTable({
                 id="description"
                 value={editData.description}
                 onChange={(e) =>
-                  setEditData((prev) => ({
-                    ...prev,
-                    description: e.target.value,
-                  }))
+                  setEditData((prev) => ({ ...prev, description: e.target.value }))
                 }
                 placeholder="Enter project description"
                 rows={3}
               />
             </div>
-          
           </div>
           <DialogFooter>
             <Button
@@ -338,6 +366,7 @@ export default function ProjectTable({
         </DialogContent>
       </Dialog>
 
+      {/* Delete Alert */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

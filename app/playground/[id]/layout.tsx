@@ -1,4 +1,5 @@
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { Header } from "@/features/home/component/header";
 import React, { ReactNode } from "react";
 
 export default function PlaygroundLayout({
@@ -6,5 +7,7 @@ export default function PlaygroundLayout({
 }: {
   children: ReactNode;
 }) {
-  return <SidebarProvider>{children}</SidebarProvider>;
+  return <SidebarProvider>
+    {children}
+    </SidebarProvider>;
 }

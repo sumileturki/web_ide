@@ -121,6 +121,7 @@ const TemplateFileTree = ({
   };
 
   return (
+    <>
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
@@ -200,6 +201,7 @@ const TemplateFileTree = ({
         onCreateFolder={handleCreateFolder}
       />
     </Sidebar>
+    </>
   );
 };
 
