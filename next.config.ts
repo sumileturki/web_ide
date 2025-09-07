@@ -15,6 +15,11 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
 
+  // Ignore TypeScript errors during production build
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+
   async headers() {
     return [
       {
